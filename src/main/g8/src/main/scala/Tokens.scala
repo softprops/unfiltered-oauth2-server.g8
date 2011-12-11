@@ -7,7 +7,7 @@ case class AppToken(
        def refresh = Some("refreshToken")
        def expiresIn = Some(3600)
        def scopes = Nil
-       def tokenType = "tokenType"
+       def tokenType = None
      }
 
 /**
