@@ -1,15 +1,29 @@
 import unfiltered.oauth2.{Client, ClientStore}
 
 case class AppClient(id: String, secret: String, redirectUri: String) extends Client
+
+/*
+ * A dummy client store with a default registered oauth client
+ */
 trait Clients extends ClientStore {
-  val clients = new java.util.HashMap[String, Client] {
-    put(
-      "exampleclient",
-       AppClient("exampleclient", "secret", "http://localhost:8081")
+
+  private val clients: Map[String, Client] =
+    Map(
+      "$client_id$" -> AppClient(
+        "$client_id$", "$client_secret$", "$client_redirect_uri$")
     )
-  }
-  def client(clientId: String, secret: Option[String]) = clients.get(clientId) match {
-    case null => None
-    case c => Some(c)
-  }
+  
+  def client(clientId: String, secret: Option[String] = None) =
+    clients.get(clientId) match {
+      case None => None
+      case Some(c) =>
+        secret match {
+          case Some(sec) =>
+            if(sec.equals(c.secret)) Some(c)
+            else None
+          case _ => None
+        }
+    }
+
+  def allClients = clients.values.toSeq
 }

@@ -1,1 +1,2 @@
-case class User(id: String, password: String) extends unfiltered.oauth2.ResourceOwner
+case class User(id: String, password: Option[String])
+     extends unfiltered.oauth2.ResourceOwner

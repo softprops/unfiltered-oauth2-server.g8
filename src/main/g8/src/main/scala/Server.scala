@@ -1,26 +1,23 @@
-import unfiltered.request._
-import unfiltered.response._
-import unfiltered.oauth2._
-
 object Server {
-  val resources = new java.net.URL(getClass.getResource("/web/robots.txt"), ".")
-  val port = 8080
+  import unfiltered.request._
+  import unfiltered.response._
+  import unfiltered.oauth2._
+  import unfiltered.jetty._
+  import unfiltered.filter._
+  import java.net.URL
 
-  object Auth extends AuthorizationProvider with Tokens {
+  object Auth extends AuthorizationProvider {
     lazy val auth = new AuthorizationServer with
-      Clients with Tokens with AppContainer
+      Clients with Tokens with AppServices
   }
 
   def main(args: Array[String]) {
-    unfiltered.jetty.Http(port)
-      .resources(Server.resources)
+    Http($port$)
+      .resources(new URL(getClass.getResource("/web/robots.txt"), "."))
       .context("/oauth") {
         _.filter(OAuthorization(Auth.auth))
-      }
-      .filter(Auth.auth)
-      /*.context("/api") {
-        _.filter(Protection())
-         .filter(new Api)
-      }*/.run
+      }.context("/api") {
+        _.filter(Api)
+      }.filter(Authentication).run
   }
 }

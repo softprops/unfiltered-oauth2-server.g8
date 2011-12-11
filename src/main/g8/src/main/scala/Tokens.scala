@@ -1,63 +1,115 @@
-import unfiltered.oauth2.{Client, ResourceOwner, Token, TokenStore}
+import unfiltered.oauth2.{ Client, ResourceOwner, Token, TokenStore }
 
-case class AppToken(val value: String, val clientId: String,
-                    val redirectUri: String, val owner: String)
-     extends Token {
+case class AppToken(
+  val value: String, val clientId: String,
+  val redirectUri: String, val owner: String)
+     extends unfiltered.oauth2.Token {
        def refresh = Some("refreshToken")
        def expiresIn = Some(3600)
-       def scopes = None
+       def scopes = Nil
        def tokenType = "tokenType"
      }
 
-
+/**
+  * This tokens mixing provides the oauth2 module with access to a services
+  * storage for token
+  */
 trait Tokens extends TokenStore {
+  import java.util.HashMap
   import scala.collection.JavaConversions._
   import java.util.UUID.randomUUID
-  private val accessTokens = new java.util.HashMap[String, AppToken]
-  private val codeTokens = new java.util.HashMap[String, AppToken]
+  private val accessTokens = new HashMap[String, AppToken]
+  private val codeTokens = new HashMap[String, AppToken]
 
   /** here you would normally be generating a new token to
    *  replace an existing access token */
   def refresh(other: Token) = AppToken(
-    other.value, other.clientId, other.redirectUri, other.owner
+    other.value, other.clientId,
+    other.redirectUri, other.owner
   )
 
-  /** may want to rename to this authorizationCode */
-  def token(code: String) = codeTokens.get(code) match {
-    case null => None
-    case t => Some(t)
-  }
+  def token(code: String) =
+    codeTokens.get(code) match {
+      case null => None
+      case t => Some(t)
+    }
 
   def refreshToken(refreshToken: String) =
     accessTokens.values().filter(_.refresh.get==refreshToken).headOption
 
   def accessToken(value: String) = accessTokens.get(value)
 
-  def generateAccessToken(other: Token) = {
-    codeTokens.remove(other.value)
-    val at = AppToken(randomUUID.toString, other.clientId, other.redirectUri, other.owner)
-    accessTokens.put(at.value, at)
-    at
-  }
+  // auth code flow
 
-  def generateCodeToken(owner: ResourceOwner, client: Client,
-                        scope: Option[String], redirectURI: String) = {
-    val ct = AppToken(randomUUID.toString, client.id, redirectURI, owner.id)
+  def generateAuthorizationCode(
+    responseTypes: Seq[String],
+    owner: ResourceOwner, client: Client,
+    scope: Seq[String], redirectUri: String) = {
+    val ct = AppToken(
+      randomUUID.toString, client.id,
+      redirectUri, owner.id
+    )
     codeTokens.put(ct.value, ct)
-    ct.value
+    // was eugene's suggestions we only return the token value
+    ct.value 
   }
 
-  /** these tokens are not associated with a resource owner */
-  def generateClientToken(client: Client, scope: Option[String]) = {
-    val at = AppToken(randomUUID.toString, client.id, client.redirectUri, client.id)
+  def exchangeAuthorizationCode(codeToken: Token) = {
+    codeTokens.remove(codeToken.value)
+    val at = AppToken(
+      randomUUID.toString, codeToken.clientId,
+      codeToken.redirectUri, codeToken.owner
+    )
     accessTokens.put(at.value, at)
     at
   }
 
-  def generateImplicitAccessToken(owner: ResourceOwner, client: Client,
-                                  scope: Option[String], redirectURI: String) = {
-    val at = AppToken(randomUUID.toString, client.id, redirectURI, owner.id)
+  // implicit flow
+
+  def generateImplicitAccessToken(
+    responseTypes: Seq[String],
+    owner: ResourceOwner, client: Client,
+    scope: Seq[String], redirectURI: String) = {
+    val at = AppToken(
+      randomUUID.toString, client.id,
+      redirectURI, owner.id
+    )
     accessTokens.put(at.value, at)
     at
   }
+
+  // client credentials flow
+
+  def generateClientToken(client: Client, scope: Seq[String]) = {
+    val at = AppToken(
+      randomUUID.toString, client.id,
+      client.redirectUri, client.id
+    )
+    accessTokens.put(at.value, at)
+    at
+  }
+
+  // password flow
+
+  def generatePasswordToken(
+    owner: ResourceOwner, client: Client, scope: Seq[String]) = {
+    val at = AppToken(
+      randomUUID.toString, client.id,
+      client.redirectUri, owner.id
+    )
+    accessTokens.put(at.value, at)
+    at
+  }
+
+  // extras
+
+  /** @return all tokens associated with a resource owner */
+  def authorizedTokens(ownerId: String): Seq[Token] =
+    accessTokens.filter(_ match {
+      case (k, v) if(v.owner == ownerId) => true
+      case _ => false
+    }).values.toSeq
+
+  def deleteToken(key: String) = 
+    accessTokens.remove(key)
 }
