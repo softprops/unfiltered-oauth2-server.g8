@@ -21,7 +21,7 @@ trait Clients extends ClientStore {
           case Some(sec) =>
             if(sec.equals(c.secret)) Some(c)
             else None
-          case _ => None
+          case _ => Some(c)
         }
     }
 

@@ -26,7 +26,7 @@ trait AppServices extends Service with Templates {
 
   // the client's uri could not be trusted to redirect, let the user know
   def invalidRedirectUri(uri: Option[String], client: Option[Client]) =
-    ResponseString("missing or invalid redirect_uri")
+    page(<div>missing or invalid redirect_uri</div>)
 
   // given a request, extract the currently logged in user
   def resourceOwner[T](r: HttpRequest[T]) = Sessions.fromRequest(r)
@@ -38,6 +38,7 @@ trait AppServices extends Service with Templates {
 
   // given the request of a form submission, return
   // true if there is indication of the user's approval
+  // (inspect the name of the submit key)
   def accepted[T](r: HttpRequest[T]) = r match {
     case Params(p) => p("submit") match {
       case Seq(ApproveKey) => true
@@ -47,6 +48,7 @@ trait AppServices extends Service with Templates {
 
   // given the request of a form submission, return
   // true if there is indication of the user's denial
+  // (inspect the name of the submit key)
   def denied[T](r: HttpRequest[T]) = r match {
     case Params(p) => p("submit") match {
       case Seq(DenyKey) => true
@@ -58,10 +60,12 @@ trait AppServices extends Service with Templates {
   // supported by the service
   def validScopes(scopes: Seq[String]) = true
 
-  //would normally validate that the scopes are valid for the owner here
+  // would normally validate that the scopes are valid for the owner here
   def validScopes[T](
     owner: ResourceOwner, scopes: Seq[String],
     req: HttpRequest[T]) = true
 
-  def invalidClient = ResponseString("invalid client")
+  def invalidClient = page(
+    <div>invalid client</div>
+  )
 }

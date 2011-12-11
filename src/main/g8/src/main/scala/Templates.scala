@@ -70,18 +70,18 @@ trait Templates {
     bundle: RequestBundle[T],
     approve: String, deny: String) = page(
     <div>
-    <form action="/oauth/authorize" method="POST">
+      <form action="/oauth/authorize" method="POST">
         <p>
-          A 3rd party application named <strong>{bundle.client.id}</strong> has requested access to your data.
+          A 3rd party application named <strong>{ bundle.client.id }</strong> has requested access to your data.
         </p>
 
-        <input type="hidden" name="response_type" value={bundle.responseTypes.mkString("+")} />
-        <input type="hidden" name="client_id" value={bundle.client.id} />
-        <input type="hidden" name="redirect_uri" value={bundle.redirectUri} />
+        <input type="hidden" name="response_type" value={ bundle.responseTypes.mkString("+") } />
+        <input type="hidden" name="client_id" value={ bundle.client.id } />
+        <input type="hidden" name="redirect_uri" value={ bundle.redirectUri } />
 
         <div id="oauth-opts">
-          <input type="submit" name="submit" value={approve} />
-          <input type="submit" name="submit" value={deny} />
+          <input type="submit" name="submit" value={ approve } />
+          <input type="submit" name="submit" value={ deny } />
         </div>
       </form>
     </div>
@@ -108,21 +108,20 @@ trait Templates {
   def connections(cs: Seq[(Token, Client)]) = page(
     <div>
       <h2>Connections</h2> {
-        if(cs.isEmpty) <p>You have no oauth connections</p>
-        else {
+        if(cs.isEmpty) {
+          <p>You have no oauth connections</p>
+        } else {
           <p>You have connections with the following applications </p>
-        }
-      } {
-        <ul>
-        cs.map { (_: (Token, Client)) match {
-          case (t, AppClient(key,_,name)) => 
-            <li>
-              <strong>{ name }</strong>
-              <a href={ "/connections/disconnect/%s" format(t.value) }>break it</a>
-            </li>
-          case _ => <li>?</li>
-        } }
-        </ul>
+        } ++ <ul>{
+          cs.map { (_: (Token, Client)) match {
+            case (t, AppClient(key, _, name)) => 
+              <li>
+                <strong>{ name }</strong>
+                <a href={ "/connections/disconnect/%s" format(t.value) }>break it</a>
+              </li>
+            case _ => <li>?</li>
+          } }
+        }</ul>
       }
     </div>
   )
