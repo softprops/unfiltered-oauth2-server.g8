@@ -1,15 +1,19 @@
+package $package$
+
 import unfiltered.filter._
 import unfiltered.request._
 import unfiltered.response._
 import unfiltered.Cookie
 
-/** Some extra end points for logging in managing authorized tokens */
-object Authentication extends Plan
-  with Templates with Tokens with Clients {
+/** Some extra endpoints for logging in managing authorized tokens */
+object Authentication
+  extends Plan with Templates {
   import java.util.UUID.randomUUID
-
+  import AppAuth._
   def intent = {
-    case Path("/") & r => index("", Sessions.fromRequest(r))
+
+    case Path("/") & r =>
+      index("", Sessions.fromRequest(r))
 
     case Path("/login") & Params(p) & r =>
       Sessions.fromRequest(r) match {
@@ -59,6 +63,5 @@ object Authentication extends Plan
 
     case Path("/clients") =>
       clientList(allClients)
-
   }
 }

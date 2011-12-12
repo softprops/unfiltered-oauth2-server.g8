@@ -1,3 +1,5 @@
+package $package$
+
 import unfiltered.oauth2.{ Client, ResourceOwner, Token, TokenStore }
 
 case class AppToken(

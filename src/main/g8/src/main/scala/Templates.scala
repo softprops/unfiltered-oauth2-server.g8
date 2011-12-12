@@ -1,3 +1,4 @@
+package $package$
 
 trait Templates {
   import unfiltered.response._
@@ -114,10 +115,10 @@ trait Templates {
           <p>You have connections with the following applications </p>
         } ++ <ul>{
           cs.map { (_: (Token, Client)) match {
-            case (t, AppClient(key, _, name)) => 
+            case (t, AppClient(id, _, uri)) => 
               <li>
-                <strong>{ name }</strong>
-                <a href={ "/connections/disconnect/%s" format(t.value) }>break it</a>
+                <strong>{ id }</strong>
+                <a href={ "/disconnect/%s" format(t.value) }>break it</a>
               </li>
             case _ => <li>?</li>
           } }

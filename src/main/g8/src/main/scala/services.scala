@@ -1,3 +1,5 @@
+package $package$
+
 import unfiltered.request._
 import unfiltered.response._
 import unfiltered.Cookie

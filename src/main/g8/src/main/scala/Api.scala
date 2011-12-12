@@ -1,3 +1,5 @@
+package $package$
+
 import unfiltered.request._
 import unfiltered.filter.Plan
 import unfiltered.filter.request.ContextPath

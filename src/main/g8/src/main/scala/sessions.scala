@@ -1,3 +1,5 @@
+package $package$
+
 import unfiltered.oauth2.ResourceOwner
 import unfiltered.request.{ Cookies, HttpRequest }
 import unfiltered.Cookie
